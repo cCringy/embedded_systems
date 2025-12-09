@@ -8,11 +8,11 @@
 #include "drivers/adc.h"
 #include "helpers/debounce.h"
 
-static FILE uart_str =  FDEV_SETUP_Stream(uart_putchar,uart_getchar,_FDEV_SETUP_RW);
+static FILE uart_str =  FDEV_SETUP_STREAM(uart_putchar,uart_getchar,_FDEV_SETUP_RW);
 
 void setup(void){
     stdout = stdin = &uart_str;
-    uart.init();
+    //uart.init();
     printf("UART initialised\n");
 
     LED_init();
@@ -29,9 +29,9 @@ int main(void){
     setup();
 
     while(1){
-        uint16_t adcval = ADC_poll(PHOTORESITOR_CH);
+        uint16_t adcval = ADC_poll(PHOTORESISTOR_CH);
         
-        if(adcval<PHOTORESITOR_THRESH){
+        if(adcval<PHOTORESISTOR_THRESH){
             LED_on();
         }else{
             LED_off();

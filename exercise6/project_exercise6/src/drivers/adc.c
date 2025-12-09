@@ -23,13 +23,12 @@ void ADC_init(void){
     ADMUX |= (1<<REFS0);
 
     ADCSRA |= (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0); // Prescaler
-    // oder ADC_PRESCALER_MASK = 128
 
     ADCSRA |= (1 << ADEN);
 }
 
 
-uint8_t ADC_poll(uint8_t channel){
+uint16_t ADC_poll(uint8_t channel){
     ADC_select_channel(channel);
     ADC_start_conversion();
 

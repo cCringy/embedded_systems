@@ -3,8 +3,8 @@ F_CPU = 16000000
 BAUD_SERIAL = 250000
 
 # EDIT! If on Linux, use these (according to your device address):
-PROGRAMMER_ARGS = -P /dev/ttyACM0
-SERIAL_PORT_DEBUG = /dev/ttyACM0
+PROGRAMMER_ARGS = -P COM9
+SERIAL_PORT_DEBUG = COM9
 
 # EDIT! If on Windows, use these (according to your COM port):
 #PROGRAMMER_ARGS = -P COM3
