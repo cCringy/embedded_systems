@@ -12,6 +12,18 @@ SERIAL_PORT_DEBUG = /dev/ttyACM0
 
 BAUD = $(BAUD_SERIAL)UL
 
+# Directories
+PROJECT_PREFIX 		:= project
+BUILD_DIR			:= buildDir
+BUILD_DIR_LOCAL		:= buildDirLocal
+BUILD_DIR_DEBUG		:= buildDirDebug
+CURRENT_DIR_PATH	:= $(CURDIR)
+CURRENT_DIR_NAME	:= $(notdir $(CURRENT_DIR_PATH))
+FOLDER_NAME			:= $(PROJECT_PREFIX)_$(CURRENT_DIR_NAME)
+SRC_DIR 			 = $(FOLDER_NAME)/src
+LIB_DIR 			 = $(FOLDER_NAME)/lib
+INCLUDE_DIR 		 = $(FOLDER_NAME)/include
+
 #################################################
 # Standard compilation options "Target"
 #################################################
@@ -19,7 +31,7 @@ CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD)
 
 # EDIT! If any of these options are not available on your system, you may remove them (typically MacOS):
 CFLAGS = -O2 -g2 -gstabs -std=c99 -Wall	# on MacOS, remove -g2 -gstabs
-CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums	# on MacOS, remove -funsigned-bitfields
+CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -I$(INCLUDE_DIR)	# on MacOS, remove -funsigned-bitfields
 
 CFLAGS += -MMD -MP
 CFLAGS += -ffunction-sections -fdata-sections -MT"$@" -MF"$(@:.o=.d)"
@@ -30,7 +42,7 @@ CFLAGS += -ffunction-sections -fdata-sections -MT"$@" -MF"$(@:.o=.d)"
 
 # EDIT! If any of these options are not available on your system, you may remove them (typically MacOS):
 CFLAGS_LOCAL = -O2 -g2 -gstabs -std=c99 -Wall	# on MacOS, remove -g2 -gstabs
-CFLAGS_LOCAL += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums	# on MacOS, remove -funsigned-bitfields
+CFLAGS_LOCAL += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -I$(INCLUDE_DIR)	# on MacOS, remove -funsigned-bitfields
 
 CFLAGS_LOCAL += -MMD -MP
 CFLAGS_LOCAL += -ffunction-sections -fdata-sections -MT"$@" -MF"$(@:.o=.d)"
@@ -49,16 +61,6 @@ TARGET_ARCH = -mmcu=$(MCU)
 # EDIT! If any of these options are not available on your system, you may replace or remove them (typically MacOS):
 LDFLAGS_LOCAL = -Wl,-Map,$(TARGET).map	# on MacOS, replace -Map with -map:
 LDFLAGS_LOCAL += -Wl,-u,-lm	# on MacOS, remove -u
-
-# Directories
-PROJECT_PREFIX 		:= project
-BUILD_DIR			:= buildDir
-BUILD_DIR_LOCAL		:= buildDirLocal
-BUILD_DIR_DEBUG		:= buildDirDebug
-CURRENT_DIR_PATH	:= $(CURDIR)
-CURRENT_DIR_NAME	:= $(notdir $(CURRENT_DIR_PATH))
-FOLDER_NAME			:= $(PROJECT_PREFIX)_$(CURRENT_DIR_NAME)
-SRC_DIR = $(FOLDER_NAME)/src
 
 #################################################
 # Platform compilers Target 
@@ -114,7 +116,7 @@ $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)/$(SOURCES_DIRS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -o $@ $<
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf
-	# $(OBJCOPY) -j .text -j .data -O ihex $< $@
+# $(OBJCOPY) -j .text -j .data -O ihex $< $@
 	$(OBJCOPY) -R .eeprom -R .fuse -R .lock -R .signature -O ihex $< $@
 
 $(BUILD_DIR)/%.eeprom: $(BUILD_DIR)/%.elf
@@ -129,11 +131,11 @@ $(BUILD_DIR)/deployment.elf : $(OBJECT_FILES)
 
 # Debug UART release build
 $(BUILD_DIR_DEBUG)/%.hex: $(BUILD_DIR_DEBUG)/%.elf
-	# $(OBJCOPY) -j .text -j .data -O ihex $< $@
+# $(OBJCOPY) -j .text -j .data -O ihex $< $@
 	$(OBJCOPY) -R .eeprom -R .fuse -R .lock -R .signature -O ihex $< $@
 
 $(BUILD_DIR_DEBUG)/deployment_debug.elf : $(OBJECT_FILES)
-	$(CC) $(LDFLAGS) $(TARGET_ARCH) $^ -L. -ldebug_uart -o $@
+	$(CC) $(LDFLAGS) $(TARGET_ARCH) $^ -L$(LIB_DIR) -ldebug_uart -o $@
 
 ###############################################
 # Local "release" build deps
