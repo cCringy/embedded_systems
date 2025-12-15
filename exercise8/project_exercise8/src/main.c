@@ -7,8 +7,25 @@
 #include "drivers/adc.h"
 #include "dsp/buffer.h"
 #include "helpers/debounce.h"
+#include "buffer.h"
+
+#define N_TAPS 10
+#define BUFFER_SIZE 20
 
 static FILE uart_str = FDEV_SETUP_STREAM(uart_putchar, uart_getchar,_FDEV_SETUP_RW);
+buffer_t input_buffer;
+buffer_t output_buffer;
+
+void setup(void){
+    stdin = stdout = &uart_str;
+    uart_init();
+    
+    ADC_init();
+    ADC_set_callback(adc_interrupt_handler2);
+    ADC_enable_interrupt();
+
+    input_buffer = buffer_create(BUFFER_SIZE);
+}
 
 void adc_interrupt_handler(uint16_t val){
     uint8_t msb=val >> 8;
@@ -17,19 +34,23 @@ void adc_interrupt_handler(uint16_t val){
     uart_transmit(lsb);
 }
 
-void setup(void){
-    stdin = stdout = &uart_str;
-    uart_init();
-    
-    ADC_init();
-    ADC_set_callback(adc_interrupt_handler);
-    ADC_enable_interrupt();
+void adc_interrupt_handler2(uint16_t val){
+    buffer_insert(&input_buffer, val);
 }
 
 int main(void){
     setup();
 
+    uint16_t val;
+
     while(1){
+        if(buffer_peek){
+            buffer_pop(&inputbuffer ,&val);
+            uint8_t msb = val >> 8;
+            uint8_t lsb = val & 0xFF;
+            uart_transmit(msb);
+            uart_transmit(lsb);
+        }
         LED_toggle();
     }
 }
