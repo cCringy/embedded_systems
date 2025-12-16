@@ -14,7 +14,6 @@
 
 static FILE uart_str = FDEV_SETUP_STREAM(uart_putchar, uart_getchar,_FDEV_SETUP_RW);
 buffer_t input_buffer;
-buffer_t output_buffer;
 
 void setup(void){
     stdin = stdout = &uart_str;
@@ -44,8 +43,8 @@ int main(void){
     uint16_t val;
 
     while(1){
-        if(buffer_peek){
-            buffer_pop(&inputbuffer ,&val);
+        if(buffer_getlen(input_buffer)!= 0){
+            buffer_pop(&input_buffer ,&val);
             uint8_t msb = val >> 8;
             uint8_t lsb = val & 0xFF;
             uart_transmit(msb);
