@@ -41,18 +41,11 @@ uint16_t ADC_poll(uint8_t channel){
 }
 
 void ADC_enable_interrupt(void){
+    cli();
     ADCSRA |= (1<<ADIE);
     sei();
 }
 
-void ADC_set_callback(void (*func)(uint16_t)){
+void ADC_set_callback(void (func)(uint16_t)){
     adc_callback = func;
-}
-
-ISR(ADC_vect){
-    uint16_t adcval = ADC_fetch_conversion();
-    if(adc_callback != 0){
-        adc_callback(adcval);
-    }
-    ADC_start_conversion();
 }

@@ -3,8 +3,8 @@ F_CPU = 16000000
 BAUD_SERIAL = 250000
 
 # EDIT! If on Linux, use these (according to your device address):
-PROGRAMMER_ARGS = -P COM9
-SERIAL_PORT_DEBUG = COM9
+PROGRAMMER_ARGS = -P COM10
+SERIAL_PORT_DEBUG = COM10
 
 # EDIT! If on Windows, use these (according to your COM port):
 #PROGRAMMER_ARGS = -P COM3
@@ -186,6 +186,9 @@ debugArduino: programArduino
 
 runSerial: 
 	python3 serial_echo.py $(SERIAL_PORT_DEBUG) $(BAUD_SERIAL)
+
+plotSerial: 
+	python3 serial_plot.py $(SERIAL_PORT_DEBUG) $(BAUD_SERIAL)
 
 $(BUILD_DIR)/$(SOURCES_DIRS) :
 	mkdir -p $@
