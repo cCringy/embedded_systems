@@ -6,16 +6,13 @@
 #include "drivers/adc.h"
 #include "debug_uart.h"
 #include "dsp/buffer.h"
+#include "dsp/timeQueue"
 #include "board_config.h"
-
-#define BUFFER_SIZE 20
 
 static FILE uart_str = FDEV_SETUP_STREAM(uart_putchar, uart_getchar,_FDEV_SETUP_RW);
 volatile buffer_t input_buffer;
 
-void insert_into_adcbuffer(uint16_t adcval){
-    buffer_insert(input_buffer,adcval);
-}
+volatile uint16_t currentTime;
 
 void setup(void){
     stdin = stdout = &uart_str;
@@ -26,13 +23,46 @@ void setup(void){
     ADC_set_callback(&insert_into_adcbuffer)
     ADC_enable_interrupt();
 
-    timer_init();
+    //timerFreq = 1000 HZ
+    // pre = 1 topVal = 16000000/1000*pre = 16.000
+    timer_init_timer1(1);
 
-    input_buffer = buffer_create(BUFFER_SIZE);
+    timeq_t q = timeq_create();
 }
 
+void task1()
+{
+    printf("Task1 executed!\n");
+}
+
+void task2()
+{
+    printf("Task2 executed!\n");
+}
+
+void task3()
+{
+    printf("Task3 (periodic) executed!\n");
+}
+
+void task4()
+{
+    printf("Task4 (periodic) executed!\n");
+}
+
+
 int main(void){
+    task_t test_task1 = task_createTask(&task1, currentTime, 0, 1000);
+    task_t test_task2 = task_createTask(&task2, currentTime, 0, 3500);
+    task_t test_task3 = task_createTask(&task3, currentTime, 1000, 3000); // periodic
+    task_t test_task4 = task_createTask(&task4, currentTime, 700, 500); // periodic
+
     setup();
+
+    q.scheduleTask(test_task1);
+    q.scheduleTask(test_task1);
+    q.scheduleTask(test_task1);
+    q.scheduleTask(test_task1);
 
     uint16_t val;
 
@@ -51,7 +81,8 @@ int main(void){
 }
 
 ISR(TIMER1_COMPA_vect){
-    ADC_start_conversion();
+    currentTime++;
+
 }
 
 ISR(ADC_vect){

@@ -1,8 +1,10 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include "timeQueue.h"
 
+
 #TODO
-Array Resizing statt capacity
+#Array Resizing statt capacity
 
 struct task{
     uint16_t      start;
@@ -108,12 +110,13 @@ timeq_t timeq_create(uint8_t max_tasks){
     return newTimeQ;    
 }
 
-timeq_scheduleTask(timeq_t pTimeQ, TaskCallBack pHandler, void* pData){
+timeq_scheduleTask(timeq_t pTimeQ, task_t task){
     if(pTimeQ->size == pTimeQ->capacity){
         printf("Queue is full");
         return;
     }
-    pTimeQ->schedule[pTimeQ->size] = createTask(pHandler, pData);
+
+    pTimeQ->schedule[pTimeQ->size] = task;
     ascend(pTimeQ, pTimeQ->size);
     pTimeQ->size++;
 }
@@ -131,7 +134,7 @@ void timeq_treatTask(timeq_t pTimeQ){
     }else{
         pTimeQ->schedule[0] = pTimeQ->schedule[--pTimeQ->size];
         descend(pTimeQ,0);
-        taksToTreat->handler(taskToTreat->data);
+        taskToTreat->handler(taskToTreat->data);
         destroyTask(&taskToTreat);
     }
 }

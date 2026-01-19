@@ -9,7 +9,7 @@ typedef task* task_t;          // value type stored in timeq instance
 //Definiere typ des Callbacks für Event
 typedef void (*TaskCallback)(void *data);
 
-timeq_t timerq_create(void);
+timeq_t timeq_create(void);
 void scheduleTaskOnce(event,start);
 void scheduleTaskPeriodic(event,start,period);
 void scheduleTaskNow(event);
