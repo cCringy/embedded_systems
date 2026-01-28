@@ -1,32 +1,14 @@
-
-#include "timer.c"
-#include <avr/io.h>
-#include <avr/interrupt.h>
-
-
-void timer_init_timer1(milliseconds){
-    cli();
-    TCCR1A = 0; // Lösche potentielle Voreinstellungen (e.g. PWM etc)
-    TCCR1B = 0; // Lösche potentielle Voreinstellungen (e.g. PWM etc)
-
-    TCCR1B |= (1<<WGM12);  // Enable CTC Mode
-
-    TIMSK1 |= (1<<OCIE1A); // Enable Interrupts bei Compare Match mit TOP in OCR1A
-
-    OCR1A = configure_pre_and_return_top(uint16_t milliseconds); // setze TOP
-    sei();
-}
+#include "timer.h"
+#include <math.h>
 
 uint16_t configure_pre_and_return_top(uint16_t milliseconds){
     //gegeben
-    const uint16_t timer_max=65535//2^16-1
+    const uint16_t timer_max=65535;//2^16-1
     const uint16_t pre_max = 1024;
-    const uint16_t max_period_ms = ((timer_max * pre_max) / F_CPU)*1000
+    const uint16_t max_period_ms = ((timer_max * pre_max) / F_CPU)*1000;
     float timerFreq = 1000/ fmin(milliseconds,max_period_ms);
     //top = f_cpu / (pre * timerFreq)
 
-    uint16_t prescaler_values_timer1[] = {1,8,64,256,1024};
-    int size = sizeof(prescaler_values_timer1)/sizeof(prescaler_values_timer1[0]);
     uint16_t top = 0;
     uint16_t pre = 0;
 
@@ -54,6 +36,19 @@ uint16_t configure_pre_and_return_top(uint16_t milliseconds){
     }
 
     return top;
+}
+
+void timer_init_timer1(uint16_t milliseconds){
+    cli();
+    TCCR1A = 0; // Lösche potentielle Voreinstellungen (e.g. PWM etc)
+    TCCR1B = 0; // Lösche potentielle Voreinstellungen (e.g. PWM etc)
+
+    TCCR1B |= (1<<WGM12);  // Enable CTC Mode
+
+    TIMSK1 |= (1<<OCIE1A); // Enable Interrupts bei Compare Match mit TOP in OCR1A
+
+    OCR1A = configure_pre_and_return_top(milliseconds); // setze TOP
+    sei();
 }
 
 void timer_init_timer1_pwm(){

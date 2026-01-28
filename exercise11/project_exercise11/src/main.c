@@ -4,16 +4,21 @@
 #include <avr/interrupt.h>
 
 #include "drivers/timer.h"
+#include "dsp/filter.h"
+#include "drivers/led.h"
 #include "drivers/adc.h"
 #include "debug_uart.h"
 #include "dsp/buffer.h"
-#include "dsp/timeQueue"
 #include "board_config.h"
 
 #define BUFFERSIZE 20
 #define N_TAPS     10
 
 volatile buffer_t input_buffer;
+
+void handle_adc_value(uint16_t value){
+    buffer_insert(input_buffer,value);
+}
 
 void setup(void){
     //timerFreq = 1000 HZ
@@ -31,24 +36,21 @@ void setup(void){
     input_buffer = buffer_create(BUFFERSIZE);
 }
 
-void handle_adc_value(uint16_t value){
-    buffer_insert(input_buffer,value);
-}
-
 int main(void){
     setup();
 
     while(1){
         
-        if(buffer_peek(input_buffer)!= INVALID_VAL){
+        if(buffer_peek(input_buffer,N_TAPS+1)!= INVALID_VAL){
             
             uint16_t duty = filter_sound_sensor(input_buffer,N_TAPS);
             OCR1A = (duty > 1023) ? 1023 : duty;
+            LED_off();
         }
     }
     cli();
-
-    buffer_delete(&input_buffer);
+    timer_stop();
+    buffer_delete((buffer_t*) &input_buffer);
     return 0;
 }
 

@@ -6,12 +6,23 @@
 #include "drivers/adc.h"
 #include "debug_uart.h"
 #include "dsp/buffer.h"
-#include "dsp/timeQueue"
+#include "dsp/timeQueue.h"
 #include "board_config.h"
 
-volatile uint32_t currentTime;
+static FILE uart_str = FDEV_SETUP_STREAM(uart_putchar, uart_getchar,_FDEV_SETUP_RW);
+volatile buffer_t input_buffer;
+
+volatile uint16_t currentTime;
 
 void setup(void){
+    stdin = stdout = &uart_str;
+    uart_init();
+    
+    ADC_init();
+    ADC_select_channel(PHOTORESITOR_CH);
+    ADC_set_callback(&insert_into_adcbuffer)
+    ADC_enable_interrupt();
+
     //timerFreq = 1000 HZ
     // pre = 1 topVal = 16000000/1000*pre = 16.000
     timer_init_timer1(1);
@@ -41,39 +52,34 @@ void task4()
 
 
 int main(void){
+    task_t test_task1 = task_createTask(&task1, currentTime, 0, 1000);
+    task_t test_task2 = task_createTask(&task2, currentTime, 0, 3500);
+    task_t test_task3 = task_createTask(&task3, currentTime, 1000, 3000); // periodic
+    task_t test_task4 = task_createTask(&task4, currentTime, 700, 500); // periodic
+
     setup();
 
-    currentTime = 0;
+    q.scheduleTask(test_task1);
+    q.scheduleTask(test_task1);
+    q.scheduleTask(test_task1);
+    q.scheduleTask(test_task1);
 
-    task_t test_task1 = task_createTask(&task1);
-    task_t test_task2 = task_createTask(&task2);
-    task_t test_task3 = task_createTask(&task3); // periodic
-    task_t test_task4 = task_createTask(&task4); // periodic
-
-    task_set_start_time(test_task1,1000);
-    task_set_start_time(test_task2,3500);
-    task_set_start_time(test_task3,3000);
-    task_set_start_time(test_task4,500);
-    
-    task_set_periodic(test_task3,1000);
-    task_set_periodic(test_task3,700);
-
-    q.scheduleTask(test_task1);
-    q.scheduleTask(test_task1);
-    q.scheduleTask(test_task1);
-    q.scheduleTask(test_task1);
+    uint16_t val;
 
     while(1){
-        if(!timeq_isEmpty(q)){
-            timeq_process(q,currentTime);
-        }
+    
     }
     cli();
-    timeq_delete((timeq_t*) &q)
-
+    buffer_delete((buffer_t*) &input_buffer)
     return 0;
 }
 
 ISR(TIMER1_COMPA_vect){
     currentTime++;
+
 }
+
+ISR(ADC_vect){
+    ADC_handle_Interrupt();
+}
+
